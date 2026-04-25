@@ -1,19 +1,25 @@
+// Importa useState para manejar el estado interno del modal
 import { useState } from "react"
 
+// Modal para editar una receta existente
 function ModalEditar({ receta, setEditando, actualizarReceta, token }) {
 
+  // Estados inicializados con los datos de la receta
   let [titulo,setTitulo]=useState(receta.titulo)
   let [descripcion,setDescripcion]=useState(receta.descripcion)
   let [ingredientes,setIngredientes]=useState(receta.ingredientes || [])
   let [pasos,setPasos]=useState(receta.pasos || [])
 
+  // Estados para nuevos ingredientes y pasos
   let [nuevoIng,setNuevoIng]=useState("")
   let [nuevoPaso,setNuevoPaso]=useState("")
   let [nuevoTiempo,setNuevoTiempo]=useState(0)
   let [nuevoUnidad,setNuevoUnidad]=useState("min")
 
+  // Drag & drop ingredientes
   const [dragIng,setDragIng]=useState(null)
 
+  // Reordenar ingredientes
   function dropIng(index){
     if(dragIng===null) return
     let copia=[...ingredientes]
@@ -24,8 +30,10 @@ function ModalEditar({ receta, setEditando, actualizarReceta, token }) {
     setDragIng(null)
   }
 
+  // Drag & drop pasos
   const [dragPaso,setDragPaso]=useState(null)
 
+  // Reordenar pasos
   function dropPaso(index){
     if(dragPaso===null) return
     let copia=[...pasos]
@@ -40,11 +48,14 @@ function ModalEditar({ receta, setEditando, actualizarReceta, token }) {
     <div className="modal-overlay" style={{ pointerEvents: "all" }}>
       <div className="modal-box">
 
+        {/* Título del modal */}
         <h3>Editar receta</h3>
 
+        {/* Inputs principales */}
         <input value={titulo} onChange={e=>setTitulo(e.target.value)} />
         <input value={descripcion} onChange={e=>setDescripcion(e.target.value)} />
 
+        {/* INGREDIENTES */}
         <b>Ingredientes</b>
 
         {ingredientes.map((ing,i)=>(
@@ -57,6 +68,7 @@ function ModalEditar({ receta, setEditando, actualizarReceta, token }) {
             onDrop={()=>dropIng(i)}
             style={{cursor:"grab"}}
           >
+            {/* Editar ingrediente */}
             <input
               value={ing}
               onChange={e=>{
@@ -66,6 +78,7 @@ function ModalEditar({ receta, setEditando, actualizarReceta, token }) {
               }}
             />
 
+            {/* Eliminar ingrediente */}
             <button
               title="Eliminar ingrediente"
               onClick={()=>{
@@ -77,6 +90,7 @@ function ModalEditar({ receta, setEditando, actualizarReceta, token }) {
           </div>
         ))}
 
+        {/* Añadir nuevo ingrediente */}
         <div className="input-row">
           <input
             placeholder="nuevo ingrediente"
@@ -95,6 +109,7 @@ function ModalEditar({ receta, setEditando, actualizarReceta, token }) {
           </button>
         </div>
 
+        {/* PASOS */}
         <b>Pasos</b>
 
         {pasos.map((p,i)=>(
@@ -108,6 +123,7 @@ function ModalEditar({ receta, setEditando, actualizarReceta, token }) {
             style={{cursor:"grab"}}
           >
 
+            {/* Texto del paso */}
             <input
               value={p.texto}
               onChange={e=>{
@@ -117,6 +133,7 @@ function ModalEditar({ receta, setEditando, actualizarReceta, token }) {
               }}
             />
 
+            {/* Tiempo */}
             <input
               type="number"
               min="0"
@@ -128,6 +145,7 @@ function ModalEditar({ receta, setEditando, actualizarReceta, token }) {
               }}
             />
 
+            {/* Unidad */}
             <select
               value={p.unidad}
               onChange={e=>{
@@ -141,6 +159,7 @@ function ModalEditar({ receta, setEditando, actualizarReceta, token }) {
               <option value="hr">Hr</option>
             </select>
 
+            {/* Duplicar paso */}
             <button
               title="Duplicar paso"
               onClick={()=>{
@@ -152,6 +171,7 @@ function ModalEditar({ receta, setEditando, actualizarReceta, token }) {
               ⧉
             </button>
 
+            {/* Eliminar paso */}
             <button
               title="Eliminar paso"
               onClick={()=>{
@@ -164,6 +184,7 @@ function ModalEditar({ receta, setEditando, actualizarReceta, token }) {
           </div>
         ))}
 
+        {/* Añadir nuevo paso */}
         <div className="input-row">
           <input
             placeholder="nuevo paso"
@@ -202,13 +223,15 @@ function ModalEditar({ receta, setEditando, actualizarReceta, token }) {
           </button>
         </div>
 
+        {/* ACCIONES */}
         <div className="modal-actions">
 
+          {/* Guardar cambios */}
           <button
             className="btn"
             title="Guardar cambios"
             onClick={()=>{
-              fetch("http://localhost:3000/recetas/"+receta._id,{
+              fetch("https://backend-762w.onrender.com/recetas/"+receta._id,{
                 method:"PATCH",
                 headers:{
                   "Content-Type":"application/json",
@@ -222,12 +245,15 @@ function ModalEditar({ receta, setEditando, actualizarReceta, token }) {
                 })
               })
               .then(()=>{
+                // Actualiza la receta en el frontend
                 actualizarReceta(receta._id,{
                   titulo,
                   descripcion,
                   ingredientes,
                   pasos
                 })
+
+                // Cierra el modal
                 setEditando(false)
               })
             }}
@@ -235,6 +261,7 @@ function ModalEditar({ receta, setEditando, actualizarReceta, token }) {
             Guardar
           </button>
 
+          {/* Cancelar */}
           <button
             className="btn-secondary"
             title="Cancelar edición"
@@ -250,4 +277,5 @@ function ModalEditar({ receta, setEditando, actualizarReceta, token }) {
   )
 }
 
+// Exporta el componente
 export default ModalEditar
