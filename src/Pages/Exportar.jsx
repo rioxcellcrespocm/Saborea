@@ -123,8 +123,12 @@ function Exportar(){
       let yRight = startY + 5
 
       r.pasos?.forEach((p, i) => {
+
+        // 🔥 CAMBIO: ahora incluye tiempo y unidad
+        // Antes solo mostraba el texto del paso
+        // Ahora muestra: "Paso (tiempo unidad)" → ej: freir (25 min)
         const textoPaso = pdf.splitTextToSize(
-          `${i + 1}. ${p.texto}`,
+          `${i + 1}. ${p.texto} (${p.tiempo} ${p.unidad})`,
           80
         )
 
