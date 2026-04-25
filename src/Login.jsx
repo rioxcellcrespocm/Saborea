@@ -9,45 +9,66 @@ import { useNavigate } from "react-router-dom"
 
 function Login(){
 
-  // Obtiene la función para actualizar el token global
+  // Obtiene la función para actualizar el token global (login global)
   let { setToken } = useContext(Contexto)
 
-  // Estados para guardar lo que el usuario escribe en los inputs
+  // Estados para inputs del formulario
   let [usuario,setUsuario] = useState("")
   let [password,setPassword] = useState("")
 
-  // Hook para redirigir a otra ruta
+  // Estado para mostrar mensajes de error en pantalla
+  let [error,setError] = useState("")
+
+  // Hook para redirigir después del login
   const navigate = useNavigate()
 
-  // Función que se ejecuta al hacer login
+  // Función que se ejecuta al hacer clic en "Login"
   function handleLogin(){
 
     // Petición al backend para autenticar usuario
     fetch("https://backend-762w.onrender.com/login",{
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body:JSON.stringify({ usuario, password })
+      method:"POST", // método POST para enviar datos
+      headers:{ "Content-Type":"application/json" }, // indicamos que enviamos JSON
+      body:JSON.stringify({ usuario, password }) // enviamos usuario y contraseña
     })
-    .then(res => res.json())
-    .then(data => {
+    .then(async res => {
 
-      // Si no hay token, las credenciales son incorrectas
-      if(!data.token){
-        alert("Credenciales incorrectas")
-        return
+      // Si la respuesta NO es correcta (ej: 401, 403)
+      if (!res.ok) {
+        const text = await res.text() // leemos respuesta como texto (evita error JSON)
+        throw new Error("Usuario o contraseña incorrecta") // lanzamos error controlado
       }
 
-      // Guarda el token en localStorage para mantener sesión
+      // Convertimos la respuesta a JSON
+      const data = await res.json()
+
+      // Si no viene token, también es error de credenciales
+      if(!data.token){
+        throw new Error("Usuario o contraseña incorrecta")
+      }
+
+      return data
+    })
+    .then(data => {
+
+      // Limpiamos mensaje de error si todo fue bien
+      setError("")
+
+      // Guardamos el token en localStorage (persistencia de sesión)
       localStorage.setItem("token", data.token)
 
-      // Guarda el nombre del usuario (para mostrarlo en la app)
+      // Guardamos el usuario para usarlo en la app
       localStorage.setItem("usuario", usuario)
 
-      // Actualiza el token en el contexto global
+      // Actualizamos el token en el contexto global
       setToken(data.token)
 
-      // Redirige a la página principal después del login
+      // Redirigimos a la página principal
       navigate("/", { replace: true })
+    })
+    .catch(err => {
+      // Mostramos el error en pantalla
+      setError(err.message)
     })
   }
 
@@ -56,36 +77,49 @@ function Login(){
 
       <div className="card login-card">
 
-        {/* Logo de la aplicación */}
+        {/* Logo de la app */}
         <img src="/logo.png" style={{width:"70px"}} />
 
         {/* Título */}
         <h2>Saborea</h2>
 
-        {/* Input para el usuario */}
+        {/* Input de usuario */}
         <input
           placeholder="Usuario"
           value={usuario}
-          onChange={e=>setUsuario(e.target.value)}
+          onChange={e=>{
+            setUsuario(e.target.value) // actualiza estado usuario
+            setError("") // limpia error al escribir
+          }}
         />
 
-        {/* Input para la contraseña */}
+        {/* Input de contraseña */}
         <input
           type="password"
           placeholder="Contraseña"
           value={password}
-          onChange={e=>setPassword(e.target.value)}
+          onChange={e=>{
+            setPassword(e.target.value) // actualiza contraseña
+            setError("") // limpia error al escribir
+          }}
         />
 
-        {/* Botón que ejecuta el login */}
+        {/* Botón de login */}
         <button className="btn" onClick={handleLogin}>
           Login
         </button>
+
+        {/* Mensaje de error si existe */}
+        {error && (
+          <p style={{ color: "red", marginTop: "10px" }}>
+            {error}
+          </p>
+        )}
 
       </div>
     </div>
   )
 }
 
-// Exporta el componente para usarlo en las rutas
+// Exporta el componente
 export default Login
